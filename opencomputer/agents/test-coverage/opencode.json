@@ -1,0 +1,10 @@
+{
+  "tools": {
+    "bash": true,
+    "read": true
+  },
+  "permission": {
+    "bash": "allow",
+    "read": "allow"
+  }
+}

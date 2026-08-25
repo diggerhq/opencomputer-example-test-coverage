@@ -115,27 +115,30 @@ GitHub archive requests redirect from `api.github.com` to
 older deployment reports a `502 egress-redirect-blocked` error, pull the latest
 example, let `npm run deploy -- --watch` publish it, and start a new session.
 
-### Bash capability and launch trust boundary
+### Filesystem capabilities and launch trust boundary
 
-This example explicitly enables OpenComputer's built-in `bash` tool. The agent
-needs it after materialization to inspect the snapshot, edit tests, and run the
-repository's validation commands. If an older deployment reports `No Code Mode
-tools are available`, pull the latest example, wait for the watch deployment,
-and start a new session.
+This example explicitly enables the runtime-provided `bash` and `read` tools in
+both `opencode.json` and the agent render. The agent needs them after
+materialization to inspect the snapshot, edit tests, and run the repository's
+validation commands. If an older deployment reports `Unknown tool: bash`,
+`Tool is not available for this request: read`, or `No Code Mode tools are
+available`, pull the latest example, wait for the watch deployment, and start a
+new session.
 
-`bash` is a broad capability: repository files and test scripts are untrusted
-code and may execute inside the session runtime. For the initial launch:
+These are broad capabilities: repository files and test scripts are untrusted
+code and may execute inside the session runtime, and file reads are not
+enforced as repository-only. For the initial launch:
 
 - use a disposable or non-production target repository;
 - scope the fine-grained PAT to that repository only;
 - keep `PUBLISH_ENABLED` set to `false` for the first run; and
 - review the proposed files and command output before enabling publication.
 
-The agent prompt confines shell work to the exact materialized snapshot and
-reserves GitHub reads and writes for the audited code-defined tools. Those are
-behavioral guardrails, not a sandbox boundary. Do not target a sensitive or
-production repository until a constrained repository executor replaces the
-general-purpose shell.
+The agent prompt confines shell and file-reading work to the exact materialized
+snapshot and reserves GitHub reads and writes for the audited code-defined
+tools. Those are behavioral guardrails, not a sandbox boundary. Do not target a
+sensitive or production repository until a constrained repository executor
+replaces the general-purpose filesystem tools.
 
 ## Publishing boundary
 
