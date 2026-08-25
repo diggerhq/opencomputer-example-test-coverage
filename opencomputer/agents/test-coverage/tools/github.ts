@@ -14,7 +14,7 @@ import {
   DEFAULT_LOOKBACK_DAYS,
   MAX_RECENT_PULL_REQUESTS,
   TARGET_REPOSITORY,
-} from "../config.js";
+} from "./config.js";
 import {
   auditTestOnlySnapshot,
   commitSha,

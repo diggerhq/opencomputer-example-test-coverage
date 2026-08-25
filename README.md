@@ -42,7 +42,7 @@ clone URL, shell environment, prompt, or repository file.
 
 ## Configure the repository
 
-Edit `opencomputer/agents/test-coverage/config.ts`:
+Edit `opencomputer/agents/test-coverage/tools/config.ts`:
 
 ```ts
 export const TARGET_REPOSITORY = {

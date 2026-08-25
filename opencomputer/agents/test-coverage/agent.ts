@@ -3,7 +3,7 @@ import {
   DEFAULT_LOOKBACK_DAYS,
   PUBLISH_ENABLED,
   TARGET_REPOSITORY,
-} from "./config.js";
+} from "./tools/config.js";
 import {
   getRecentMergedChanges,
   materializeConfiguredRepository,
