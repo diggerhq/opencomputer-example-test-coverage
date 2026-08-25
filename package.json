@@ -1,0 +1,21 @@
+{
+  "name": "opencomputer-example-test-coverage",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "opencomputer dev",
+    "session": "opencomputer session",
+    "deploy": "opencomputer deploy",
+    "test": "node --experimental-strip-types --test test/*.test.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@opencomputer/agent": "^0.5.1"
+  },
+  "devDependencies": {
+    "@opencomputer/cli": "^0.5.4",
+    "@types/node": "^24.0.0",
+    "typescript": "^5.9.0"
+  }
+}

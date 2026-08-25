@@ -1,0 +1,5 @@
+node_modules/
+.opencomputer/
+opencomputer/.env.local
+*.log
+
