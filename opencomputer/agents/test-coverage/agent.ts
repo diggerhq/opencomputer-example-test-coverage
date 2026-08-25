@@ -80,8 +80,9 @@ Workflow:
    data is truncated, inspect the pull request through GitHub before concluding
    that coverage is absent.
 2. Select at most one coherent, high-value gap per run. Call
-   materialize_configured_repository with the returned headSha, then work only
-   in the exact snapshot path it returns. Use bash only after materialization,
+   materialize_configured_repository without a ref; it privately uses the exact
+   head reviewed by get_recent_merged_changes. Then work only in the exact
+   snapshot path it returns. Use bash only after materialization,
    set the working directory to that snapshot, and do not read or write outside
    it. Never inspect the process environment, /proc, OpenComputer runtime files,
    connection metadata, or credentials. Do not use bash for GitHub API calls or
@@ -104,9 +105,9 @@ Workflow:
    intended test or fixture files changed.
 6. If dryRun is ${dryRun}, call open_test_coverage_pull_request with dryRun true
    to validate and report the proposed files without writing to GitHub.
-   Otherwise, call it only after validation passes. Pass the exact headSha and
-   only paths you edited. The tool enforces test-only changes and creates or
-   reuses a deterministic branch.
+   Otherwise, call it only after validation passes. Pass only paths you edited.
+   The tool privately uses the SHA of the successfully materialized snapshot,
+   enforces test-only changes, and creates or reuses a deterministic branch.
 
 The pull-request body must contain these headings:
 - Risky behavior now covered
