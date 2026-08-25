@@ -38,18 +38,18 @@ const github = defineConnection({
   origin: "https://api.github.com",
   methods: ["GET", "POST", "PUT"],
   pathPrefix: "/repos/",
+  redirectOrigins: [
+    {
+      origin: "https://codeload.github.com",
+      pathPrefix: "/",
+    },
+  ],
   headers: {
     Accept: "application/vnd.github+json",
     Authorization: bearer(useSecret("GITHUB_PAT")),
     "User-Agent": "opencomputer-example-test-coverage",
     "X-GitHub-Api-Version": "2022-11-28",
   },
-});
-
-const codeload = defineConnection({
-  id: "github-codeload",
-  origin: "https://codeload.github.com",
-  methods: ["GET"],
 });
 
 type GitHubRepository = { default_branch: string };
@@ -231,21 +231,11 @@ export const materializeConfiguredRepository = defineTool({
         `/repos/${owner}/${repository}/tarball/${encodeURIComponent(ref)}`,
         { signal },
       );
-      let archiveResponse = response;
-      if (response.status >= 300 && response.status < 400) {
-        const location = response.headers.get("location");
-        if (!location) throw new Error("GitHub archive redirect omitted Location");
-        const url = new URL(location);
-        if (url.origin !== "https://codeload.github.com") {
-          throw new Error(`GitHub archive redirected to an unsupported origin: ${url.origin}`);
-        }
-        archiveResponse = await codeload.fetch(`${url.pathname}${url.search}`, { signal });
+      if (!response.ok) {
+        const message = await response.text();
+        throw new Error(`GitHub archive ${response.status}: ${message.slice(0, 1_000)}`);
       }
-      if (!archiveResponse.ok) {
-        const message = await archiveResponse.text();
-        throw new Error(`GitHub archive ${archiveResponse.status}: ${message.slice(0, 1_000)}`);
-      }
-      await writeFile(archive, new Uint8Array(await archiveResponse.arrayBuffer()));
+      await writeFile(archive, new Uint8Array(await response.arrayBuffer()));
       await mkdir(REPOSITORY_ROOT, { recursive: true });
       await mkdir(BASELINE_ROOT, { recursive: true });
       await rm(destination, { recursive: true, force: true });
