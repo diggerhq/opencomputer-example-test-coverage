@@ -50,10 +50,18 @@ export const TARGET_REPOSITORY = {
   repository: "your-repository",
   defaultBranch: "main",
 } as const;
+
+export const PUBLISH_ENABLED = false;
 ```
 
 This mapping is code-owned. Prompts, pull-request bodies, commit messages, and
 repository files cannot redirect the agent to another repository.
+
+Keep `PUBLISH_ENABLED` set to `false` for the first remote run. The agent still
+materializes the repository, adds and runs tests, and audits the final snapshot,
+but the publishing tool returns the proposed files without writing to GitHub.
+Set it to `true` only after reviewing that result against a disposable fixture
+repository.
 
 ## Install and run in Development
 
@@ -61,7 +69,7 @@ repository files cannot redirect the agent to another repository.
 npm install
 npx opencomputer link
 npx opencomputer secrets set GITHUB_PAT --environment development --agent current
-npm run dev
+npm run deploy -- --watch
 ```
 
 Start an explicit run in the development session:
@@ -120,4 +128,3 @@ npm run typecheck
 This first version supports explicit runs. Do not claim recurring scheduling as
 part of the example until code-defined schedules are available and verified on
 the relevant default branches.
-

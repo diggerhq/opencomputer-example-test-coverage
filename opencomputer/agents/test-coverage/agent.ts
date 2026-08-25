@@ -1,6 +1,7 @@
 import { useInput, useModel, useTool } from "@opencomputer/agent";
 import {
   DEFAULT_LOOKBACK_DAYS,
+  PUBLISH_ENABLED,
   TARGET_REPOSITORY,
 } from "./config.js";
 import {
@@ -26,7 +27,7 @@ export default function Agent() {
   const lookbackDays = Number.isInteger(payload.lookbackDays)
     ? Math.min(30, Math.max(1, Number(payload.lookbackDays)))
     : DEFAULT_LOOKBACK_DAYS;
-  const dryRun = payload.dryRun === true;
+  const dryRun = !PUBLISH_ENABLED || payload.dryRun === true;
 
   useModel("anthropic/claude-sonnet-4.6");
   useTool(getRecentMergedChanges);
@@ -40,6 +41,7 @@ export default function Agent() {
     defaultBranch: TARGET_REPOSITORY.defaultBranch,
     lookbackDays,
     dryRun,
+    publishingEnabled: PUBLISH_ENABLED,
   });
 
   return `You are a test coverage automation focused on preventing regressions.
@@ -111,4 +113,3 @@ Return the pull-request URL when one is created or reused. For a no-op, return
 the merges reviewed, the highest-risk candidates considered, and the concrete
 reason no safe material test gap warranted a pull request.`;
 }
-

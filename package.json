@@ -4,17 +4,18 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "opencomputer dev",
+    "opencomputer": "opencomputer",
+    "dev": "opencomputer deploy --watch",
     "session": "opencomputer session",
     "deploy": "opencomputer deploy",
     "test": "node --experimental-strip-types --test test/*.test.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@opencomputer/agent": "^0.5.1"
+    "@opencomputer/agent": "^0.5.2"
   },
   "devDependencies": {
-    "@opencomputer/cli": "^0.5.4",
+    "@opencomputer/cli": "^0.6.3",
     "@types/node": "^24.0.0",
     "typescript": "^5.9.0"
   }
