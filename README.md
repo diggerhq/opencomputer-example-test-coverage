@@ -40,6 +40,10 @@ The token is stored as an OpenComputer secret and injected only into the
 declared `https://api.github.com/repos/` connection. It is never placed in a
 clone URL, shell environment, prompt, or repository file.
 
+Repository archives are downloaded through GitHub's normal redirect to
+`https://codeload.github.com`. That redirect is declared on the same managed
+connection; it does not require another token or secret.
+
 ## Configure the repository
 
 Edit `opencomputer/agents/test-coverage/tools/config.ts`:
@@ -66,9 +70,14 @@ repository.
 ## Install and run in Development
 
 ```bash
-npm install
-npx opencomputer link
-npx opencomputer secrets set GITHUB_PAT --environment development --agent current
+npm ci
+npm test
+npm run typecheck
+npm run opencomputer -- login
+npm run opencomputer -- link
+npm run opencomputer -- secrets set GITHUB_PAT \
+  --environment development \
+  --agent current
 npm run deploy -- --watch
 ```
 
@@ -77,6 +86,10 @@ Start an explicit run in the development session:
 ```bash
 npm run session -- "Review recent merged code and add the highest-value missing regression tests."
 ```
+
+Keep the watch deployment running while testing. After any source change, wait
+for the new Development deployment and start a new session; an existing session
+remains pinned to the deployment with which it started.
 
 To inspect a wider window, send a structured payload from the playground or
 session API:
@@ -91,6 +104,23 @@ session API:
 `dryRun: true` still materializes the repository, permits local test edits and
 validation, and runs the final test-only audit, but does not create a branch or
 pull request.
+
+## Troubleshoot remote runs
+
+### `egress-redirect-blocked` while materializing
+
+GitHub archive requests redirect from `api.github.com` to
+`codeload.github.com`. Current example source declares that redirect. If an
+older deployment reports a `502 egress-redirect-blocked` error, pull the latest
+example, let `npm run deploy -- --watch` publish it, and start a new session.
+
+### `No Code Mode tools are available`
+
+The workflow needs filesystem and shell capabilities after materializing the
+repository so it can inspect source, edit tests, and execute the repository's
+validation commands. If the runtime reports that Code Mode tools are
+unavailable, stop the run and leave `PUBLISH_ENABLED` set to `false`; that
+deployment cannot complete the workflow or safely publish a pull request.
 
 ## Publishing boundary
 
@@ -125,6 +155,6 @@ npm test
 npm run typecheck
 ```
 
-This first version supports explicit runs. Do not claim recurring scheduling as
-part of the example until code-defined schedules are available and verified on
-the relevant default branches.
+This first version intentionally supports explicit runs only. Add a recurring
+schedule only after the repository-specific workflow and publication policy
+have been verified end to end.
