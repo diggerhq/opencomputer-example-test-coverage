@@ -35,6 +35,7 @@ No material gap means no pull request.
 - access to an OpenComputer project
 - a fine-grained GitHub personal access token scoped to one target repository
   with **Contents: read and write** and **Pull requests: read and write**
+- a disposable or non-production repository for the first end-to-end run
 
 The token is stored as an OpenComputer secret and injected only into the
 declared `https://api.github.com/repos/` connection. It is never placed in a
@@ -114,13 +115,27 @@ GitHub archive requests redirect from `api.github.com` to
 older deployment reports a `502 egress-redirect-blocked` error, pull the latest
 example, let `npm run deploy -- --watch` publish it, and start a new session.
 
-### `No Code Mode tools are available`
+### Bash capability and launch trust boundary
 
-The workflow needs filesystem and shell capabilities after materializing the
-repository so it can inspect source, edit tests, and execute the repository's
-validation commands. If the runtime reports that Code Mode tools are
-unavailable, stop the run and leave `PUBLISH_ENABLED` set to `false`; that
-deployment cannot complete the workflow or safely publish a pull request.
+This example explicitly enables OpenComputer's built-in `bash` tool. The agent
+needs it after materialization to inspect the snapshot, edit tests, and run the
+repository's validation commands. If an older deployment reports `No Code Mode
+tools are available`, pull the latest example, wait for the watch deployment,
+and start a new session.
+
+`bash` is a broad capability: repository files and test scripts are untrusted
+code and may execute inside the session runtime. For the initial launch:
+
+- use a disposable or non-production target repository;
+- scope the fine-grained PAT to that repository only;
+- keep `PUBLISH_ENABLED` set to `false` for the first run; and
+- review the proposed files and command output before enabling publication.
+
+The agent prompt confines shell work to the exact materialized snapshot and
+reserves GitHub reads and writes for the audited code-defined tools. Those are
+behavioral guardrails, not a sandbox boundary. Do not target a sensitive or
+production repository until a constrained repository executor replaces the
+general-purpose shell.
 
 ## Publishing boundary
 
