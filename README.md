@@ -35,6 +35,7 @@ No material gap means no pull request.
 - access to an OpenComputer project
 - a fine-grained GitHub personal access token scoped to one target repository
   with **Contents: read and write** and **Pull requests: read and write**
+- a disposable or non-production repository for the first end-to-end run
 
 The token is stored as an OpenComputer secret and injected only into the
 declared `https://api.github.com/repos/` connection. It is never placed in a
@@ -114,13 +115,37 @@ GitHub archive requests redirect from `api.github.com` to
 older deployment reports a `502 egress-redirect-blocked` error, pull the latest
 example, let `npm run deploy -- --watch` publish it, and start a new session.
 
-### `No Code Mode tools are available`
+### Filesystem capabilities and launch trust boundary
 
-The workflow needs filesystem and shell capabilities after materializing the
-repository so it can inspect source, edit tests, and execute the repository's
-validation commands. If the runtime reports that Code Mode tools are
-unavailable, stop the run and leave `PUBLISH_ENABLED` set to `false`; that
-deployment cannot complete the workflow or safely publish a pull request.
+This example explicitly enables the runtime-provided `shell` and `read` tools
+in both `opencode.json` and the agent render. It also allows every OpenCode
+permission inside the secure microVM, including access to external directories.
+The materialized repository lives under `/workspace/repositories`, outside
+OpenCode's working directory; without that permission, a headless session can
+wait indefinitely for an interactive approval when it first reads the checkout.
+The agent needs these capabilities after materialization to inspect the
+snapshot, edit tests, and run the repository's validation commands. If an older
+deployment reports `Unknown tool: shell`, `Tool is not available for this
+request: read`, `No Code Mode tools are available`, or stalls at the first
+`read` after materialization, pull the latest example, wait for the watch
+deployment, and start a new session.
+
+These are deliberately unrestricted microVM capabilities: repository files and
+test scripts are untrusted code and may execute inside the session runtime, and
+filesystem access is not enforced as repository-only. The microVM isolates the
+host, but it does not make credentials, network access, or the target repository
+disposable. For the initial launch:
+
+- use a disposable or non-production target repository;
+- scope the fine-grained PAT to that repository only;
+- keep `PUBLISH_ENABLED` set to `false` for the first run; and
+- review the proposed files and command output before enabling publication.
+
+The agent prompt confines shell and file-reading work to the exact materialized
+snapshot and reserves GitHub reads and writes for the audited code-defined
+tools. Those are behavioral guardrails, not a sandbox boundary. Do not target a
+sensitive or production repository until a constrained repository executor
+replaces the general-purpose filesystem tools.
 
 ## Publishing boundary
 

@@ -26,6 +26,12 @@ const execFileAsync = promisify(execFile);
 const REPOSITORY_ROOT = "/workspace/repositories";
 const BASELINE_ROOT = "/workspace/repository-baselines";
 
+// Keep commit identity inside the code-defined tool boundary. The model sees
+// these values in tool output for transparency, but never supplies them back
+// into a mutating tool.
+const reviewedHeads = new Map<string, string>();
+const materializedBases = new Map<string, string>();
+
 const owner = repositorySegment(TARGET_REPOSITORY.owner, "configured owner");
 const repository = repositorySegment(
   TARGET_REPOSITORY.repository,
@@ -136,7 +142,7 @@ export const getRecentMergedChanges = defineTool({
     },
     additionalProperties: false,
   },
-  async run({ input, signal, reportProgress }): Promise<DataValue> {
+  async run({ input, sessionId, signal, reportProgress }): Promise<DataValue> {
     const lookbackDays = Math.min(30, Math.max(1, Number(input.lookbackDays ?? DEFAULT_LOOKBACK_DAYS)));
     const limit = Math.min(
       MAX_RECENT_PULL_REQUESTS,
@@ -196,10 +202,14 @@ export const getRecentMergedChanges = defineTool({
       });
     }
 
+    const headSha = commitSha(head!.object.sha);
+    reviewedHeads.set(sessionId, headSha);
+    materializedBases.delete(sessionId);
+
     return {
       repository: `${owner}/${repository}`,
       defaultBranch,
-      headSha: head!.object.sha,
+      headSha,
       since: since.toISOString(),
       mergedPullRequests: pullRequests,
     };
@@ -212,14 +222,18 @@ export const materializeConfiguredRepository = defineTool({
     "Download the configured GitHub repository at an exact commit into /workspace/repositories and create a private baseline used to enforce test-only publishing.",
   input: {
     type: "object",
-    properties: {
-      ref: { type: "string", pattern: "^[0-9a-fA-F]{40}$" },
-    },
-    required: ["ref"],
+    properties: {},
     additionalProperties: false,
   },
-  async run({ input, signal, reportProgress }) {
-    const ref = commitSha(input.ref);
+  async run({ sessionId, signal, reportProgress }) {
+    const reviewedHeadSha = reviewedHeads.get(sessionId);
+    if (!reviewedHeadSha) {
+      throw new Error(
+        "No reviewed repository head is available. Call get_recent_merged_changes first.",
+      );
+    }
+    const ref = reviewedHeadSha;
+    materializedBases.delete(sessionId);
     const destination = checkoutPath();
     const baseline = baselinePath();
     const temporary = await mkdtemp(join(tmpdir(), "coverage-repository-"));
@@ -247,6 +261,7 @@ export const materializeConfiguredRepository = defineTool({
         { signal },
       );
       await cp(destination, baseline, { recursive: true, dereference: false });
+      materializedBases.set(sessionId, ref);
       return {
         repository: `${owner}/${repository}`,
         ref,
@@ -266,7 +281,6 @@ export const openTestCoveragePullRequest = defineTool({
   input: {
     type: "object",
     properties: {
-      baseSha: { type: "string", pattern: "^[0-9a-fA-F]{40}$" },
       title: { type: "string", minLength: 1, maxLength: 200 },
       body: { type: "string", minLength: 1, maxLength: 20_000 },
       commitMessage: { type: "string", minLength: 1, maxLength: 200 },
@@ -279,11 +293,17 @@ export const openTestCoveragePullRequest = defineTool({
       draft: { type: "boolean", default: false },
       dryRun: { type: "boolean", default: false },
     },
-    required: ["baseSha", "title", "body", "commitMessage", "paths"],
+    required: ["title", "body", "commitMessage", "paths"],
     additionalProperties: false,
   },
-  async run({ input, signal, reportProgress }): Promise<DataValue> {
-    const baseSha = commitSha(input.baseSha);
+  async run({ input, sessionId, signal, reportProgress }): Promise<DataValue> {
+    const materializedBaseSha = materializedBases.get(sessionId);
+    if (!materializedBaseSha) {
+      throw new Error(
+        "No successfully materialized repository snapshot is available. Call materialize_configured_repository first.",
+      );
+    }
+    const baseSha = materializedBaseSha;
     const branch = `test/coverage-${baseSha.slice(0, 12)}`;
     const title = String(input.title).trim();
     const body = String(input.body).trim();
