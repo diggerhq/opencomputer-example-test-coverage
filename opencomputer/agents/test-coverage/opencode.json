@@ -3,8 +3,16 @@
     "bash": true,
     "read": true
   },
+  "permissions": [
+    {
+      "action": "*",
+      "resource": "*",
+      "effect": "allow"
+    }
+  ],
   "permission": {
     "bash": "allow",
-    "read": "allow"
+    "read": "allow",
+    "external_directory": "allow"
   }
 }

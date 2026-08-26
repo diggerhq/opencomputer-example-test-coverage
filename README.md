@@ -118,16 +118,23 @@ example, let `npm run deploy -- --watch` publish it, and start a new session.
 ### Filesystem capabilities and launch trust boundary
 
 This example explicitly enables the runtime-provided `bash` and `read` tools in
-both `opencode.json` and the agent render. The agent needs them after
-materialization to inspect the snapshot, edit tests, and run the repository's
-validation commands. If an older deployment reports `Unknown tool: bash`,
-`Tool is not available for this request: read`, or `No Code Mode tools are
-available`, pull the latest example, wait for the watch deployment, and start a
-new session.
+both `opencode.json` and the agent render. It also allows every OpenCode
+permission inside the secure microVM, including access to external directories.
+The materialized repository lives under `/workspace/repositories`, outside
+OpenCode's working directory; without that permission, a headless session can
+wait indefinitely for an interactive approval when it first reads the checkout.
+The agent needs these capabilities after materialization to inspect the
+snapshot, edit tests, and run the repository's validation commands. If an older
+deployment reports `Unknown tool: bash`, `Tool is not available for this
+request: read`, `No Code Mode tools are available`, or stalls at the first
+`read` after materialization, pull the latest example, wait for the watch
+deployment, and start a new session.
 
-These are broad capabilities: repository files and test scripts are untrusted
-code and may execute inside the session runtime, and file reads are not
-enforced as repository-only. For the initial launch:
+These are deliberately unrestricted microVM capabilities: repository files and
+test scripts are untrusted code and may execute inside the session runtime, and
+filesystem access is not enforced as repository-only. The microVM isolates the
+host, but it does not make credentials, network access, or the target repository
+disposable. For the initial launch:
 
 - use a disposable or non-production target repository;
 - scope the fine-grained PAT to that repository only;
