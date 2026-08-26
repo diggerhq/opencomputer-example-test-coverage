@@ -31,7 +31,6 @@ export default function Agent() {
 
   useModel("anthropic/claude-sonnet-4.6");
   useTool("shell");
-  useTool("bash");
   useTool("read");
   useTool(getRecentMergedChanges);
   useTool(materializeConfiguredRepository);

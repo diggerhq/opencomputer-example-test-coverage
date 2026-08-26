@@ -118,18 +118,17 @@ example, let `npm run deploy -- --watch` publish it, and start a new session.
 ### Filesystem capabilities and launch trust boundary
 
 This example explicitly enables the runtime-provided `shell` and `read` tools
-in both `opencode.json` and the agent render. It retains `bash` as a compatibility
-alias for older runtimes. It also allows every OpenCode permission inside the
-secure microVM, including access to external directories.
+in both `opencode.json` and the agent render. It also allows every OpenCode
+permission inside the secure microVM, including access to external directories.
 The materialized repository lives under `/workspace/repositories`, outside
 OpenCode's working directory; without that permission, a headless session can
 wait indefinitely for an interactive approval when it first reads the checkout.
 The agent needs these capabilities after materialization to inspect the
 snapshot, edit tests, and run the repository's validation commands. If an older
-deployment reports `Unknown tool: shell`, `Unknown tool: bash`, `Tool is not
-available for this request: read`, `No Code Mode tools are available`, or stalls
-at the first `read` after materialization, pull the latest example, wait for the
-watch deployment, and start a new session.
+deployment reports `Unknown tool: shell`, `Tool is not available for this
+request: read`, `No Code Mode tools are available`, or stalls at the first
+`read` after materialization, pull the latest example, wait for the watch
+deployment, and start a new session.
 
 These are deliberately unrestricted microVM capabilities: repository files and
 test scripts are untrusted code and may execute inside the session runtime, and
