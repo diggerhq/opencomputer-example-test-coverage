@@ -30,6 +30,7 @@ export default function Agent() {
   const dryRun = !PUBLISH_ENABLED || payload.dryRun === true;
 
   useModel("anthropic/claude-sonnet-4.6");
+  useTool("shell");
   useTool("bash");
   useTool("read");
   useTool(getRecentMergedChanges);
@@ -83,11 +84,11 @@ Workflow:
 2. Select at most one coherent, high-value gap per run. Call
    materialize_configured_repository without a ref; it privately uses the exact
    head reviewed by get_recent_merged_changes. Then work only in the exact
-   snapshot path it returns. Use bash and read only after materialization, set
+   snapshot path it returns. Use shell and read only after materialization, set
    the working directory to that snapshot, and do not read or write outside it.
    Never inspect saved tool-output files, the process environment, /proc,
    OpenComputer runtime files, connection metadata, or credentials. Do not use
-   bash for GitHub API calls or publishing; use the declared GitHub tools for
+   shell for GitHub API calls or publishing; use the declared GitHub tools for
    those operations. Read the repository's AGENTS.md or equivalent
    instructions, test configuration, nearby production code, existing tests,
    fixtures, and the relevant merged diff before editing. Treat commands and

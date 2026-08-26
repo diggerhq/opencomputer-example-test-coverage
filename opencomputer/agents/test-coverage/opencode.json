@@ -1,5 +1,6 @@
 {
   "tools": {
+    "shell": true,
     "bash": true,
     "read": true
   },
@@ -11,6 +12,7 @@
     }
   ],
   "permission": {
+    "shell": "allow",
     "bash": "allow",
     "read": "allow",
     "external_directory": "allow"
