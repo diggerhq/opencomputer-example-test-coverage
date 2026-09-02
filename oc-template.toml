@@ -1,0 +1,15 @@
+schema = 1
+
+[template]
+name = "Test Coverage Agent"
+description = "Find a material regression risk and open a focused, test-only pull request."
+documentation = "https://docs.opencomputer.dev/agents/examples/test-coverage"
+default_project_name = "test-coverage-agent"
+
+[template.first_run]
+agent = "test-coverage"
+prompt = "Review recent merged code and add the highest-value missing regression tests as a dry run."
+
+[template.secrets.GITHUB_PAT]
+description = "Fine-grained GitHub token restricted to the repository this agent may inspect and update."
+documentation = "https://github.com/settings/personal-access-tokens"

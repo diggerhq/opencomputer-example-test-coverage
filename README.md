@@ -8,6 +8,8 @@ It is deliberately narrower than a general coding agent. The configured
 repository is fixed in code, publishing rejects production-file changes, and
 the agent cannot merge a pull request or reuse an arbitrary branch.
 
+[Deploy to OpenComputer →](https://app.opencomputer.dev/new?repository-url=https%3A%2F%2Fgithub.com%2Fdiggerhq%2Fopencomputer-example-test-coverage)
+
 ## How it works
 
 ```text
